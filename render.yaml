@@ -20,4 +20,3 @@ services:
     buildCommand: ""
     staticPublishPath: dashboard
     plan: free
-    region: oregon
