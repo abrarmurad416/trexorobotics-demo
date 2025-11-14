@@ -3,10 +3,9 @@ services:
   - type: web
     name: trexo-robotics-api
     env: python
-    branch: main     # change to master if needed
+    branch: master     # change to master if needed
     buildCommand: pip install -r requirements.txt
     startCommand: python api/data_api.py
-    plan: free
     region: oregon
     envVars:
       - key: ENV
