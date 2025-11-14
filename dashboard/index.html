@@ -6,11 +6,7 @@
     <title>Trexo Robotics - Analytics Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -19,10 +15,7 @@
             padding: 20px;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1400px; margin: 0 auto; }
 
         .header {
             background: white;
@@ -32,14 +25,8 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .header h1 {
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            color: #666;
-        }
+        .header h1 { color: #667eea; margin-bottom: 10px; }
+        .header p { color: #666; }
 
         .metrics-grid {
             display: grid;
@@ -56,9 +43,7 @@
             transition: transform 0.2s;
         }
 
-        .metric-card:hover {
-            transform: translateY(-5px);
-        }
+        .metric-card:hover { transform: translateY(-5px); }
 
         .metric-card h3 {
             color: #666;
@@ -73,11 +58,7 @@
             color: #667eea;
             margin-bottom: 5px;
         }
-
-        .metric-card .change {
-            font-size: 12px;
-            color: #28a745;
-        }
+        .metric-card .change { font-size: 12px; color: #28a745; }
 
         .charts-grid {
             display: grid;
@@ -93,17 +74,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .chart-card h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 20px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
+        .chart-card h2 { color: #333; margin-bottom: 20px; font-size: 20px; }
 
         .error {
             background: #f8d7da;
@@ -114,22 +85,14 @@
         }
 
         .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
+            display: inline-block; width: 10px; height: 10px;
+            border-radius: 50%; margin-right: 8px;
         }
-
-        .status-online {
-            background: #28a745;
-        }
-
-        .status-offline {
-            background: #dc3545;
-        }
+        .status-online { background: #28a745; }
+        .status-offline { background: #dc3545; }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -141,276 +104,156 @@
             </p>
         </div>
 
-        <div class="metrics-grid" id="metricsGrid">
-            <!-- Metrics will be populated by JavaScript -->
-        </div>
+        <div class="metrics-grid" id="metricsGrid"></div>
 
         <div class="charts-grid">
-            <div class="chart-card">
-                <h2>Device Usage Trends</h2>
-                <canvas id="usageChart"></canvas>
-            </div>
-
-            <div class="chart-card">
-                <h2>Patient Outcomes Distribution</h2>
-                <canvas id="outcomesChart"></canvas>
-            </div>
-
-            <div class="chart-card">
-                <h2>Facility Performance</h2>
-                <canvas id="facilityChart"></canvas>
-            </div>
-
-            <div class="chart-card">
-                <h2>Device Reliability</h2>
-                <canvas id="reliabilityChart"></canvas>
-            </div>
+            <div class="chart-card"><h2>Device Usage Trends</h2><canvas id="usageChart"></canvas></div>
+            <div class="chart-card"><h2>Patient Outcomes Distribution</h2><canvas id="outcomesChart"></canvas></div>
+            <div class="chart-card"><h2>Facility Performance</h2><canvas id="facilityChart"></canvas></div>
+            <div class="chart-card"><h2>Device Reliability</h2><canvas id="reliabilityChart"></canvas></div>
         </div>
     </div>
 
-    <script>
-        const API_BASE_URL = 'https://trexorobotics-demo.onrender.com';
-        const API_KEY = 'demo_key_123'; // In production, use secure storage
+<script>
+    const API_BASE_URL = "https://trexorobotics-demo.onrender.com";
+    const API_KEY = "demo_key_123";
+    let charts = {};
 
-        let charts = {};
-
-        // Initialize dashboard
-        async function initDashboard() {
-            try {
-                await checkAPIHealth();
-                await loadDashboardData();
-                setInterval(loadDashboardData, 30000); // Refresh every 30 seconds
-            } catch (error) {
-                console.error('Dashboard initialization error:', error);
-                showError('Failed to initialize dashboard. Please check API connection.');
-            }
+    async function initDashboard() {
+        try {
+            await checkAPIHealth();
+            await loadDashboardData();
+            setInterval(loadDashboardData, 30000);
+        } catch (error) {
+            showError("Failed to initialize dashboard. Check API.");
         }
+    }
 
-        async function checkAPIHealth() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/health`);
-                const data = await response.json();
-                
-                if (data.status === 'healthy') {
-                    document.getElementById('statusIndicator').classList.add('status-online');
-                    document.getElementById('statusText').textContent = 'API Connected';
+    async function checkAPIHealth() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/health`);
+            const data = await response.json();
+            if (data.status === "healthy") {
+                document.getElementById("statusIndicator").classList.add("status-online");
+                document.getElementById("statusText").textContent = "API Connected";
+            }
+        } catch {
+            document.getElementById("statusIndicator").classList.add("status-offline");
+            document.getElementById("statusText").textContent = "API Offline";
+        }
+    }
+
+    async function loadDashboardData() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/dashboard-summary?api_key=${API_KEY}`, {
+                headers: { "X-API-Key": API_KEY }
+            });
+
+            if (!response.ok) throw new Error("API error");
+
+            const result = await response.json();
+            if (result.success) {
+                updateMetrics(result.data);
+                updateCharts(result.data);
+            } else throw new Error(result.error);
+
+        } catch (error) {
+            showError("Failed to load live data. Using sample data.");
+            loadSampleData();
+        }
+    }
+
+    function updateMetrics(data) {
+        const metricsGrid = document.getElementById("metricsGrid");
+        const metrics = [
+            { title: "Total Steps", value: data.device_usage.total_steps.toLocaleString(), change: "+12%" },
+            { title: "Active Patients", value: data.device_usage.active_patients, change: "+5" },
+            { title: "Active Devices", value: data.device_usage.active_devices, change: "98% uptime" },
+            { title: "Avg Walking Improvement", value: `${data.patient_outcomes.avg_walking_improvement}%`, change: "+3.2%" },
+            { title: "Device Reliability", value: `${(data.device_reliability.reliability_score * 100).toFixed(1)}%`, change: "Excellent" },
+            { title: "Success Rate", value: `${(data.patient_outcomes.improvement_rate * 100).toFixed(1)}%`, change: "+2.5%" }
+        ];
+        metricsGrid.innerHTML = metrics.map(metric => `
+            <div class="metric-card">
+                <h3>${metric.title}</h3>
+                <div class="value">${metric.value}</div>
+                <div class="change">${metric.change}</div>
+            </div>
+        `).join("");
+    }
+
+    function updateCharts(data) {
+        if (!charts.usage) {
+            const ctx = document.getElementById("usageChart").getContext("2d");
+            charts.usage = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
+                    datasets: [{ label: "Total Steps", data: [85000, 92000, 105000, data.device_usage.total_steps / 4],
+                        borderColor: "#667eea", backgroundColor: "rgba(102,126,234,0.1)", tension: 0.4 }]
                 }
-            } catch (error) {
-                document.getElementById('statusIndicator').classList.add('status-offline');
-                document.getElementById('statusText').textContent = 'API Offline';
-            }
+            });
         }
 
-        async function loadDashboardData() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/dashboard-summary?api_key=${API_KEY}`, {
-                    headers: {
-                        'X-API-Key': API_KEY
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('API request failed');
+        if (!charts.outcomes) {
+            const ctx = document.getElementById("outcomesChart").getContext("2d");
+            charts.outcomes = new Chart(ctx, {
+                type: "doughnut",
+                data: {
+                    labels: ["High Independence", "Moderate", "Low Independence"],
+                    datasets: [{
+                        data: [data.patient_outcomes.high_independence_count, data.patient_outcomes.total_patients -
+                        data.patient_outcomes.high_independence_count - 30, 30],
+                        backgroundColor: ["#28a745", "#ffc107", "#dc3545"]
+                    }]
                 }
+            });
+        }
 
-                const result = await response.json();
-                
-                if (result.success) {
-                    updateMetrics(result.data);
-                    updateCharts(result.data);
-                } else {
-                    throw new Error(result.error || 'Unknown error');
+        if (!charts.facility) {
+            const ctx = document.getElementById("facilityChart").getContext("2d");
+            charts.facility = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: ["Facility A", "Facility B", "Facility C"],
+                    datasets: [{ label: "Avg Walking Score", data: [68.5, 72.3, 65.8], backgroundColor: "#667eea" }]
                 }
-            } catch (error) {
-                console.error('Error loading dashboard data:', error);
-                showError('Failed to load dashboard data. Using sample data.');
-                loadSampleData();
-            }
+            });
         }
 
-        function updateMetrics(data) {
-            const metricsGrid = document.getElementById('metricsGrid');
-            
-            const metrics = [
-                {
-                    title: 'Total Steps',
-                    value: data.device_usage.total_steps.toLocaleString(),
-                    change: '+12%'
-                },
-                {
-                    title: 'Active Patients',
-                    value: data.device_usage.active_patients,
-                    change: '+5'
-                },
-                {
-                    title: 'Active Devices',
-                    value: data.device_usage.active_devices,
-                    change: '98% uptime'
-                },
-                {
-                    title: 'Avg Walking Improvement',
-                    value: `${data.patient_outcomes.avg_walking_improvement}%`,
-                    change: '+3.2%'
-                },
-                {
-                    title: 'Device Reliability',
-                    value: `${(data.device_reliability.reliability_score * 100).toFixed(1)}%`,
-                    change: 'Excellent'
-                },
-                {
-                    title: 'Success Rate',
-                    value: `${(data.patient_outcomes.improvement_rate * 100).toFixed(1)}%`,
-                    change: '+2.5%'
+        if (!charts.reliability) {
+            const ctx = document.getElementById("reliabilityChart").getContext("2d");
+            charts.reliability = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: ["Excellent", "Good", "Fair", "Needs Attention"],
+                    datasets: [{
+                        label: "Number of Devices",
+                        data: [data.device_reliability.active_devices - 3, 3, 0, data.device_reliability.devices_needing_attention],
+                        backgroundColor: ["#28a745", "#ffc107", "#ff9800", "#dc3545"]
+                    }]
                 }
-            ];
-
-            metricsGrid.innerHTML = metrics.map(metric => `
-                <div class="metric-card">
-                    <h3>${metric.title}</h3>
-                    <div class="value">${metric.value}</div>
-                    <div class="change">${metric.change}</div>
-                </div>
-            `).join('');
+            });
         }
+    }
 
-        function updateCharts(data) {
-            // Device Usage Chart
-            if (!charts.usage) {
-                const ctx = document.getElementById('usageChart').getContext('2d');
-                charts.usage = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                        datasets: [{
-                            label: 'Total Steps',
-                            data: [85000, 92000, 105000, data.device_usage.total_steps / 4],
-                            borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            legend: {
-                                display: true
-                            }
-                        }
-                    }
-                });
-            }
+    function loadSampleData() {
+        updateMetrics({
+            device_usage: { total_steps: 450000, active_patients: 120, active_devices: 45 },
+            patient_outcomes: { avg_walking_improvement: 25.5, high_independence_count: 45, total_patients: 150, improvement_rate: 0.75 },
+            device_reliability: { active_devices: 45, reliability_score: 0.98, devices_needing_attention: 2 }
+        });
+    }
 
-            // Patient Outcomes Chart
-            if (!charts.outcomes) {
-                const ctx = document.getElementById('outcomesChart').getContext('2d');
-                charts.outcomes = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['High Independence', 'Moderate', 'Low Independence'],
-                        datasets: [{
-                            data: [
-                                data.patient_outcomes.high_independence_count,
-                                data.patient_outcomes.total_patients - data.patient_outcomes.high_independence_count - 30,
-                                30
-                            ],
-                            backgroundColor: ['#28a745', '#ffc107', '#dc3545']
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true
-                    }
-                });
-            }
+    function showError(msg) {
+        const container = document.querySelector(".container");
+        const div = document.createElement("div");
+        div.className = "error";
+        div.textContent = msg;
+        container.prepend(div);
+    }
 
-            // Facility Performance Chart
-            if (!charts.facility) {
-                const ctx = document.getElementById('facilityChart').getContext('2d');
-                charts.facility = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Facility A', 'Facility B', 'Facility C'],
-                        datasets: [{
-                            label: 'Avg Walking Score',
-                            data: [68.5, 72.3, 65.8],
-                            backgroundColor: '#667eea'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Device Reliability Chart
-            if (!charts.reliability) {
-                const ctx = document.getElementById('reliabilityChart').getContext('2d');
-                charts.reliability = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Excellent', 'Good', 'Fair', 'Needs Attention'],
-                        datasets: [{
-                            label: 'Number of Devices',
-                            data: [
-                                data.device_reliability.active_devices - 3,
-                                3,
-                                0,
-                                data.device_reliability.devices_needing_attention
-                            ],
-                            backgroundColor: ['#28a745', '#ffc107', '#ff9800', '#dc3545']
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true
-                    }
-                });
-            }
-        }
-
-        function loadSampleData() {
-            // Fallback sample data if API fails
-            const sampleData = {
-                device_usage: {
-                    total_steps: 450000,
-                    active_patients: 120,
-                    active_devices: 45
-                },
-                patient_outcomes: {
-                    avg_walking_improvement: 25.5,
-                    high_independence_count: 45,
-                    total_patients: 150,
-                    improvement_rate: 0.75
-                },
-                device_reliability: {
-                    active_devices: 45,
-                    reliability_score: 0.98,
-                    devices_needing_attention: 2
-                }
-            };
-            updateMetrics(sampleData);
-            updateCharts(sampleData);
-        }
-
-        function showError(message) {
-            const container = document.querySelector('.container');
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error';
-            errorDiv.textContent = message;
-            container.insertBefore(errorDiv, container.firstChild);
-        }
-
-        // Initialize on page load
-        initDashboard();
-    </script>
+    initDashboard();
+</script>
 </body>
 </html>
-
