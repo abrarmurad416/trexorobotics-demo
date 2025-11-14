@@ -15,7 +15,6 @@ services:
   - type: web
     name: trexo-robotics-dashboard
     env: static
-    branch: main     # change to master if needed
+    branch: master     # change to master if needed
     buildCommand: ""
     staticPublishPath: dashboard
-    plan: free
